@@ -1,24 +1,54 @@
-const path = require("path");
+const http = require("http");
+const fs = require("fs");
 const express = require("express");
 
-const app = express(); //init our express app
-//body-parser will take http request body and attach it
-//to the request object automatticly for us
-app.use(require("body-parser")());
+const hostname = "localhost";
+const port = 3030;
 
-//Configuring the app to use the right templeting engine
+const app = express();
+app.set("port", process.env.PORT || 3030);
+
 const handlebars = require("express-handlebars").create({
   defaultLayout: "main"
 });
-
 app.engine("handlebars", handlebars.engine);
-app.set("views", path.join(__dirname, "views")); //where are the views?
 app.set("view engine", "handlebars");
 
-app.set("port", process.env.PORT || 3000);
+app.get("/", (request, response) => {
+  response.render("home");
+});
 
-app.get("/", (req, res) => {
-  res.render("index"); //render the file in views named 'index'
+app.get("/beginning", (request, response) => {
+  response.render("beginning");
+});
+
+app.get("/middle", (request, response) => {
+  response.render("middle");
+});
+
+app.get("/nextpage1", (request, response) => {
+  response.render("nextpage1");
+});
+
+app.get("/nextpage2", (request, response) => {
+  response.render("nextpage2");
+});
+
+app.get("/nextpage3", (request, response) => {
+  response.render("nextpage3");
+});
+
+app.get("/end", (request, response) => {
+  response.render("end");
+});
+
+app.get("/about", (request, response) => {
+  response.render("about");
+});
+
+app.use((request, response) => {
+  response.status(404);
+  response.render("404");
 });
 
 app.listen(app.get("port"), () => {
@@ -27,13 +57,4 @@ app.listen(app.get("port"), () => {
       app.get("port") +
       "; press Ctrl-C to terminate."
   );
-});
-
-app.get("/ship", (req, res) => {
-  res.render("ship");
-});
-
-app.post("/pirate", (req, res) => {
-  console.log(req.body);
-  res.send("Thanks");
 });

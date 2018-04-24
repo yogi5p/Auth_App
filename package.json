@@ -1,7 +1,6 @@
 {
   "name": "nodejs_example",
   "version": "1.0.0",
-  "description": "",
   "main": "index.js",
   "dependencies": {
     "body-parser": "^1.18.2",
@@ -16,5 +15,15 @@
     "start": "nodemon index.js"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yogi5p/nodejs_first.git"
+  },
+  "keywords": [],
+  "bugs": {
+    "url": "https://github.com/yogi5p/nodejs_first/issues"
+  },
+  "homepage": "https://github.com/yogi5p/nodejs_first#readme",
+  "description": ""
 }
