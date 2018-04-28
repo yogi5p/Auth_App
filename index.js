@@ -1,16 +1,29 @@
-const http = require("http");
-const fs = require("fs");
 const express = require("express");
+const sequelize = require("sequelize");
+const sqlite = require("sqlite3");
+const passport = require("passport");
+const FacebookStrategy = require("passport-facebook").Strategy;
 
 const hostname = "localhost";
 const port = 3030;
 
 const app = express();
+
+// Configuring Passport
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Initialize Passport
+var initPassport = require("./passport/init");
+initPassport(passport);
+
 app.set("port", process.env.PORT || 3030);
 
+//Configuring the app to use the right templeting engine
 const handlebars = require("express-handlebars").create({
   defaultLayout: "main"
 });
+
 app.engine("handlebars", handlebars.engine);
 app.set("view engine", "handlebars");
 
@@ -18,28 +31,59 @@ app.get("/", (request, response) => {
   response.render("home");
 });
 
-app.get("/beginning", (request, response) => {
-  response.render("beginning");
+let fb_auth = passport.authenticate("facebook", { failureRedirect: "/login" });
+
+//Custom Middleware
+
+/* this checks to see passport has deserialized 
+and appended the user to the request */
+const isAuth = (req, res, next) => {
+  console.log("=======Authorization Check");
+  if (req.user) {
+    return next();
+  } else return res.render("login", {});
+};
+
+app.get("/login", (req, res) => {
+  res.render("login");
 });
 
-app.get("/middle", (request, response) => {
-  response.render("middle");
+app.get("/logout", function(req, res) {
+  req.logout();
+  res.redirect("/");
 });
 
-app.get("/nextpage1", (request, response) => {
-  response.render("nextpage1");
+// register facebook routes index.js
+app.get("/login/facebook", passport.authenticate("facebook"));
+
+app.get(
+  "/login/facebook/callback",
+  passport.authenticate("faceboook", { failureRedirect: "/" }),
+  function(req, res) {
+    res.redirect("/users");
+  }
+);
+
+app.get("/account", (req, res) => {
+  if (!req.session.passport.user) return res.redirect(303, "/unauthorized");
+  res.render("account");
 });
 
-app.get("/nextpage2", (request, response) => {
-  response.render("nextpage2");
+function adminOnly(req, res) {
+  const user = req.session.passport.user;
+  if (user && req.role === "admin") return next();
+  res.redirect(303, "/unauthorized");
+}
+
+app.get("/admin", adminOnly, (req, res) => {
+  res.render("admin");
 });
 
-app.get("/nextpage3", (request, response) => {
-  response.render("nextpage3");
-});
-
-app.get("/end", (request, response) => {
-  response.render("end");
+app.get("/profile", isAuth, (req, res) => {
+  console.log(req.isAuthenticated());
+  res.render("profile", {
+    user: req.user
+  });
 });
 
 app.get("/about", (request, response) => {
@@ -53,7 +97,7 @@ app.use((request, response) => {
 
 app.listen(app.get("port"), () => {
   console.log(
-    "Express started on http://localhost:" +
+    "Express started on https://localhost:" +
       app.get("port") +
       "; press Ctrl-C to terminate."
   );
